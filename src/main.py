@@ -116,10 +116,11 @@ def train(config: dict[str, Any]) -> float:
     model_cfg["in_dim"] = in_dim
     model = build_adagad_hnc(model_cfg).to(device)
 
+    train_cfg = config["train"]
     optimizer = torch.optim.AdamW(
         model.parameters(),
-        lr=config["train"].get("lr", 0.001),
-        weight_decay=config["train"].get("weight_decay", 5e-5),
+        lr=float(train_cfg.get("lr", 0.001)),
+        weight_decay=float(train_cfg.get("weight_decay", 5e-5)),
     )
     scheduler = build_scheduler(optimizer, config["train"])
     loss_fn = AdaGADTotalLoss(config.get("loss", {}))
