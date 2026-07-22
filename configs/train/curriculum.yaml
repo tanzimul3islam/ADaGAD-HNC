@@ -1,0 +1,11 @@
+name: curriculum
+extends: standard
+max_epochs: 100
+early_stopping_patience: 30
+negative_mining:
+  enabled: true
+  warmup_easy_epochs: 10
+  transition_epochs: 20
+  hard_phase_epochs: 70
+  negative_ratio: 8
+  memory_bank_size: 4096

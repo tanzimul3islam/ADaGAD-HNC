@@ -1,0 +1,8 @@
+location            = "eastus"
+vm_sku              = "Standard_NC6s_v3"
+admin_username      = "azureuser"
+ssh_public_key      = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC..."
+spot_instance       = true
+vm_size_gb          = 128
+github_repo_url     = "https://github.com/tanzimul3islam/AdaGAD-HNC.git"
+github_pat          = ""

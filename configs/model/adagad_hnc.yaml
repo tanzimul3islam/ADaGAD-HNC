@@ -1,0 +1,44 @@
+name: adagad_hnc
+encoder:
+  type: gat
+  hidden_dim: 256
+  num_layers: 3
+  dropout: 0.1
+  heads: 8
+  residual: true
+
+readout:
+  type: mean
+  hidden_dim: 256
+
+discriminator:
+  hidden_dim: 256
+  num_layers: 2
+
+reconstruction:
+  hidden_dim: 256
+  num_layers: 2
+
+fusion:
+  hidden_dim: 128
+  num_layers: 2
+  entropy_reg_weight: 0.1
+
+negative_mining:
+  warmup_easy_epochs: 20
+  transition_epochs: 30
+  hard_phase_epochs: 50
+  negative_ratio: 8
+  memory_bank_size: 4096
+  temperature: 0.2
+
+samplers:
+  context:
+    type: khop
+    k: 3
+    sample_size: 64
+  patch:
+    type: random_walk
+    walk_length: 4
+    sample_size: 32
+  attribute_aware: false

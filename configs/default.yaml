@@ -1,0 +1,11 @@
+defaults:
+  - data: cora
+  - model: adagad_hnc
+  - train: curriculum
+
+project: AdaGAD-HNC
+seed: 42
+device: auto
+amp: false
+log_dir: outputs
+experiment_name: default

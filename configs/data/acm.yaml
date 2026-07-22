@@ -1,0 +1,7 @@
+name: acm
+dataset: acm
+anomaly_ratio: 0.05
+val_ratio: 0.1
+test_ratio: 0.1
+feature_dim: 837
+num_classes: 3

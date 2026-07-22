@@ -1,0 +1,7 @@
+name: cora
+dataset: cora
+anomaly_ratio: 0.05
+val_ratio: 0.1
+test_ratio: 0.1
+feature_dim: 1433
+num_classes: 7

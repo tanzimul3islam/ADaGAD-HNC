@@ -1,0 +1,7 @@
+name: blogcatalog
+dataset: blogcatalog
+anomaly_ratio: 0.05
+val_ratio: 0.1
+test_ratio: 0.1
+feature_dim: 8189
+num_classes: 39

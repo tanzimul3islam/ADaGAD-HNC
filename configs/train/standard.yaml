@@ -1,0 +1,12 @@
+name: standard
+max_epochs: 200
+batch_size: full
+lr: 0.001
+weight_decay: 5e-5
+lr_scheduler: cosine
+early_stopping_patience: 50
+gradient_clip_norm: 1.0
+save_every: 10
+amp: false
+checkpoint_dir: outputs
+log_every: 1
