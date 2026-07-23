@@ -18,7 +18,7 @@ from src.train.engine import Engine
 from src.train.hooks import EarlyStoppingHook
 from src.train.scheduler import build_scheduler
 from src.utils.io import save_json
-from src.utils.seed import setup_seed
+from src.utils.seed import setup_seed, get_device
 
 LOGGER = logging.getLogger("AdaGAD-HNC")
 
@@ -110,7 +110,7 @@ def train(config: dict[str, Any]) -> float:
     loader_cfg = config.get("loader", {"loader": "full", "batch_size": 1})
     loader = get_runner(dataset, loader_cfg)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = get_device(config.get("device", "auto"))
     in_dim = data.x.size(1)
     model_cfg = config["model"]
     model_cfg["in_dim"] = in_dim
@@ -182,7 +182,7 @@ def train(config: dict[str, Any]) -> float:
 def evaluate(config: dict[str, Any], ckpt_path: str) -> dict[str, Any]:
     from src.train.checkpoint import CheckpointManager
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = get_device(config.get("device", "auto"))
     root = config.get("data_dir", "data")
     dataset_name = config["data"]["dataset"]
     dataset_root = Path(root) / dataset_name
