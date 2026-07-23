@@ -118,7 +118,41 @@ outputs/
       last.pt
 ```
 
----
+## Resume Training
+
+Training supports resuming from the last saved checkpoint. This is useful if the process is interrupted or the computer turns off.
+
+### 1. Start training normally
+
+```bash
+python -m src.main train model=adagad_hnc data=citeseer train=curriculum max_epochs=100
+```
+
+This saves checkpoints to `outputs/curriculum_citeseer/default/`:
+- `last.pt` — always updated after each checkpoint
+- `best.pt` — best validation AUC so far
+- `epoch_XXXX.pt` — periodic epoch snapshots
+
+### 2. Resume after interruption
+
+If training stops, just rerun with `resume_from`:
+
+```bash
+python -m src.main train \
+  model=adagad_hnc \
+  data=citeseer \
+  train=curriculum \
+  max_epochs=100 \
+  resume_from=outputs/curriculum_citeseer/default/last.pt
+```
+
+It loads the saved epoch and continues from the next one.
+
+### 3. Check saved checkpoints
+
+```bash
+ls outputs/curriculum_citeseer/default/
+```
 
 ## Reproducibility Checklist
 
