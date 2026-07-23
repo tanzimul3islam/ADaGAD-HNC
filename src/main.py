@@ -131,10 +131,23 @@ def train(config: dict[str, Any]) -> float:
     ckpt_manager = CheckpointManager(ckpt_dir)
     early_stop = EarlyStoppingHook(patience=config["train"].get("early_stopping_patience", 50))
 
+    start_epoch = 1
     best_auc = -float("inf")
+    resume_from = config.get("resume_from")
+    if resume_from:
+        try:
+            state = ckpt_manager.load(resume_from, map_location=str(device))
+            model.load_state_dict(state["model"])
+            optimizer.load_state_dict(state["optimizer"])
+            start_epoch = int(state.get("epoch", 0)) + 1
+            best_auc = float(state.get("score", -float("inf")))
+            LOGGER.info(f"Resumed from {resume_from} at epoch {start_epoch - 1}")
+        except Exception as e:
+            LOGGER.warning(f"Failed to resume from {resume_from}: {e}")
+
     metrics_history = []
 
-    for epoch in range(1, config["train"].get("max_epochs", 100) + 1):
+    for epoch in range(start_epoch, config["train"].get("max_epochs", 100) + 1):
         train_metrics = engine.train_epoch(loader, epoch, loss_fn)
 
         if epoch % config["train"].get("val_every", 10) == 0 or epoch == config["train"].get(

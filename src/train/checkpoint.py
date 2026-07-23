@@ -22,6 +22,7 @@ class CheckpointManager:
         }
         path = self.ckpt_dir / f"epoch_{epoch:04d}.pt"
         torch.save(state, path)
+        torch.save(state, self.ckpt_dir / "last.pt")
         LOGGER.info(f"Saved checkpoint to {path}")
 
         if is_best:
