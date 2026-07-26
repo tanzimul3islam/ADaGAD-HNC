@@ -100,6 +100,79 @@ python -m src.experiments.ablations --suite fusion_curriculum
 python scripts/export_results.py --input outputs/*/metrics.csv --output outputs/results_table.md
 ```
 
+## Google Colab Training
+
+Training can be run in Google Colab with free T4 GPUs. Checkpoints persist in the notebook filesystem, and can optionally be synced to Google Drive.
+
+### Colab setup cells
+
+**Cell 1 — Clone repo**
+```python
+import os
+REPO_DIR = '/kaggle/working/AdaGAD-HNC'
+if not os.path.exists(REPO_DIR):
+    !git clone https://github.com/tanzimul3islam/AdaGAD-HNC.git $REPO_DIR
+else:
+    %cd $REPO_DIR
+    !git pull
+```
+
+**Cell 2 — Install dependencies**
+```python
+REPO_DIR = '/kaggle/working/AdaGAD-HNC'
+!pip install -r $REPO_DIR/requirements.txt
+```
+
+**Cell 3 — Prepare dataset**
+```python
+import os
+os.chdir('/kaggle/working/AdaGAD-HNC')
+!python scripts/prepare_data.py --dataset citeseer
+```
+
+### Training
+
+**Fresh start**
+```python
+import os
+os.chdir('/kaggle/working/AdaGAD-HNC')
+!python -m src.main train \
+  model=adagad_hnc \
+  data=citeseer \
+  train=curriculum \
+  max_epochs=20 \
+  checkpoint_dir=outputs/curriculum_citeseer
+```
+
+**Resume after session restart**
+```python
+import os
+os.chdir('/kaggle/working/AdaGAD-HNC')
+!python -m src.main train \
+  model=adagad_hnc \
+  data=citeseer \
+  train=curriculum \
+  max_epochs=20 \
+  --auto-resume \
+  checkpoint_dir=outputs/curriculum_citeseer
+```
+
+**Check saved checkpoints**
+```python
+!find outputs -name "last.pt"
+```
+
+**Download results**
+```python
+from google.colab import files
+files.download('outputs/curriculum_citeseer/default/metrics.json')
+```
+
+### Notes
+- **GPU**: Runtime → Change runtime type → Hardware accelerator → T4 GPU
+- If Kaggle assigns a P100, the code automatically falls back to CPU
+- Notebook outputs persist between restarts, but runtime files are cleared on disconnect. Use Google Drive backup for long-term storage.
+
 ---
 
 ## Expected Outputs

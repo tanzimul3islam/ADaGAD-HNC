@@ -216,6 +216,7 @@ def main() -> None:
 
     p_train = sub.add_parser("train")
     p_train.add_argument("--config", default="configs/default.yaml")
+    p_train.add_argument("--auto-resume", action="store_true", help="Resume from latest checkpoint automatically")
     p_train.add_argument("overrides", nargs="*", help="key=value or key.subkey=value")
 
     p_eval = sub.add_parser("eval")
@@ -227,6 +228,8 @@ def main() -> None:
     if args.command == "train":
         config = load_config(args.config)
         config = _merge_overrides(config, args.overrides)
+        if args.auto_resume:
+            _auto_resume(config)
         train(config)
     elif args.command == "eval":
         config = load_config(args.config)
@@ -235,6 +238,16 @@ def main() -> None:
     else:
         parser.print_help()
         sys.exit(1)
+
+
+def _auto_resume(config: dict[str, Any]) -> None:
+    ckpt_dir = Path(config.get("checkpoint_dir", "outputs")) / config.get("experiment_name", "default")
+    candidates = sorted(ckpt_dir.glob("**/last.pt"))
+    if candidates:
+        config["resume_from"] = str(candidates[-1])
+        LOGGER.info(f"Auto-resume enabled. Using checkpoint: {config['resume_from']}")
+    else:
+        LOGGER.info("Auto-resume enabled, but no checkpoint found. Starting from scratch.")
 
 
 if __name__ == "__main__":
