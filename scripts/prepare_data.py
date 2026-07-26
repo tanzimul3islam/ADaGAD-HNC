@@ -31,7 +31,7 @@ def prepare_mat_dataset(
     data = _load_mat(mat_path, name=name, anomaly_key=mat_key)
     data.y = data.y.long()
 
-    out_dir = Path(data_dir) / name
+    out_dir = Path(data_dir) / name / "processed"
     out_dir.mkdir(parents=True, exist_ok=True)
     save_path = out_dir / "data.pt"
     torch.save(data, save_path)
