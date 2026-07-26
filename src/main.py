@@ -168,10 +168,14 @@ def train(config: dict[str, Any]) -> float:
             if metrics.get("auc", -float("inf")) > best_auc:
                 best_auc = metrics["auc"]
                 ckpt_manager.save(model, optimizer, epoch, best_auc, is_best=True)
+            else:
+                ckpt_manager.save(model, optimizer, epoch, best_auc, is_best=False)
 
             if should_stop:
                 LOGGER.info(f"Early stopping at epoch {epoch}")
                 break
+        else:
+            ckpt_manager.save(model, optimizer, epoch, best_auc, is_best=False)
 
     ckpt_manager.save(model, optimizer, epoch, best_auc, is_best=False)
     save_json(metrics_history, Path(ckpt_dir) / "metrics.json")
@@ -217,6 +221,7 @@ def main() -> None:
     p_train = sub.add_parser("train")
     p_train.add_argument("--config", default="configs/default.yaml")
     p_train.add_argument("--auto-resume", action="store_true", help="Resume from latest checkpoint automatically")
+    p_train.add_argument("--checkpoint-dir", dest="checkpoint_dir_override", default=None, help="Override checkpoint directory")
     p_train.add_argument("overrides", nargs="*", help="key=value or key.subkey=value")
 
     p_eval = sub.add_parser("eval")
