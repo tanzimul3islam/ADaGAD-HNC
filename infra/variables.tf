@@ -1,11 +1,11 @@
 variable "location" {
   type    = string
-  default = "eastus"
+  default = "northeurope"
 }
 
 variable "vm_sku" {
   type    = string
-  default = "Standard_NC6s_v3"
+  default = "Standard_D4a_v4"
 }
 
 variable "admin_username" {

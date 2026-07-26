@@ -9,7 +9,7 @@ terraform {
       version = "~> 4.0"
     }
   }
-  required_version = ">= 1.5"
+  required_version = ">= 1.4"
 }
 
 provider "azurerm" {
@@ -18,47 +18,6 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
   }
-}
-
-variable "location" {
-  type    = string
-  default = "eastus"
-}
-
-variable "vm_sku" {
-  type    = string
-  default = "Standard_NC6s_v3"
-}
-
-variable "admin_username" {
-  type    = string
-  default = "azureuser"
-}
-
-variable "ssh_public_key" {
-  type        = string
-  description = "SSH public key for VM access"
-}
-
-variable "spot_instance" {
-  type    = bool
-  default = true
-}
-
-variable "vm_size_gb" {
-  type    = number
-  default = 128
-}
-
-variable "github_repo_url" {
-  type        = string
-  description = "GitHub repo URL to clone on the VM"
-}
-
-variable "github_pat" {
-  type        = string
-  default     = ""
-  description = "Optional GitHub PAT for private repos"
 }
 
 resource "azurerm_resource_group" "adagad" {
@@ -103,13 +62,6 @@ resource "azurerm_subnet_network_security_group_association" "adagad" {
   network_security_group_id = azurerm_network_security_group.adagad.id
 }
 
-data "azurerm_platform_image" "ubuntu" {
-  location  = var.location
-  publisher = "Canonical"
-  offer     = "ubuntu-22_04-lts"
-  sku       = "server-gen2"
-}
-
 resource "tls_private_key" "adagad" {
   algorithm = "RSA"
   rsa_bits  = 4096
@@ -119,8 +71,9 @@ resource "azurerm_public_ip" "adagad" {
   location            = azurerm_resource_group.adagad.location
   name                = "pip-adagad"
   resource_group_name = azurerm_resource_group.adagad.name
-  allocation_method   = "Dynamic"
-  sku                 = "Basic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_network_interface" "adagad" {
@@ -137,11 +90,12 @@ resource "azurerm_network_interface" "adagad" {
 }
 
 resource "azurerm_linux_virtual_machine" "adagad" {
-  location            = azurerm_resource_group.adagad.location
-  name                = "vm-adagad"
-  resource_group_name = azurerm_resource_group.adagad.name
-  size                = var.vm_sku
-  admin_username      = var.admin_username
+  location                  = azurerm_resource_group.adagad.location
+  name                      = "vm-adagad"
+  resource_group_name       = azurerm_resource_group.adagad.name
+  size                      = var.vm_sku
+  admin_username            = var.admin_username
+  network_interface_ids     = [azurerm_network_interface.adagad.id]
 
   admin_ssh_key {
     username   = var.admin_username
@@ -150,20 +104,15 @@ resource "azurerm_linux_virtual_machine" "adagad" {
 
   os_disk {
     caching              = "ReadWrite"
-    storage_account_type = "Premium_LRS"
+    storage_account_type = "Standard_LRS"
     disk_size_gb         = var.vm_size_gb
   }
 
   source_image_reference {
-    publisher = data.azurerm_platform_image.ubuntu.publisher
-    offer     = data.azurerm_platform_image.ubuntu.offer
-    sku       = data.azurerm_platform_image.ubuntu.sku
-    version   = data.azurerm_platform_image.ubuntu.version
-  }
-
-  spot {
-    eviction_policy = "Deallocate"
-    max_price       = -1
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
   }
 
   provisioner "file" {

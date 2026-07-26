@@ -1,5 +1,5 @@
-location            = "eastus"
-vm_sku              = "Standard_NC6s_v3"
+location            = "northeurope"
+vm_sku              = "Standard_D4a_v4"
 admin_username      = "azureuser"
 ssh_public_key      = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC..."
 spot_instance       = true
