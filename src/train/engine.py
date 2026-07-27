@@ -14,7 +14,7 @@ class Engine:
         self.scheduler = scheduler
         self.device = device
         self.config = config
-        self.scaler = GradScaler("cpu", enabled=config.get("amp", False))
+        self.scaler = GradScaler(self.device.type, enabled=config.get("amp", False))
         self.grad_clip = config.get("gradient_clip_norm", 1.0)
 
     def train_epoch(self, loader, epoch: int, loss_fn):

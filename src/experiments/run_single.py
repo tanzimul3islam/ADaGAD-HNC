@@ -15,7 +15,7 @@ from src.train.engine import Engine
 from src.train.hooks import EarlyStoppingHook
 from src.train.scheduler import build_scheduler
 from src.utils.io import save_json
-from src.utils.seed import setup_seed
+from src.utils.seed import get_device, setup_seed
 
 LOGGER = logging.getLogger("AdaGAD-HNC")
 
@@ -41,7 +41,7 @@ def run_single(config: dict[str, Any], ckpt_dir: str | None = None) -> tuple[flo
     loader_cfg = config.get("loader", {"loader": "full", "batch_size": 1})
     loader = get_runner(dataset, loader_cfg)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = get_device(config.get("device", "auto"))
     in_dim = data.x.size(1)
     model_cfg = config["model"]
     model_cfg["in_dim"] = in_dim

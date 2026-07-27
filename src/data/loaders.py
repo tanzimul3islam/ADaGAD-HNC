@@ -1,6 +1,6 @@
 import logging
 
-from torch_geometric.loader import DataLoader, NeighborLoader
+from torch_geometric.loader import NeighborLoader
 
 from src.data.dataset import AnomalyDataset
 
@@ -9,16 +9,13 @@ LOGGER = logging.getLogger("AdaGAD-HNC")
 
 class FullGraphLoader:
     def __init__(self, dataset: AnomalyDataset, batch_size: int = 1, num_workers: int = 0):
-        self.dataset = dataset
-        self.loader = DataLoader(
-            dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
-        )
+        self.data = dataset.data
 
     def __iter__(self):
-        yield from self.loader
+        yield self.data
 
     def __len__(self):
-        return len(self.loader)
+        return 1
 
 
 class SubgraphLoader:

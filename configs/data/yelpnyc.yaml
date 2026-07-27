@@ -1,0 +1,9 @@
+name: yelpnyc
+dataset: yelpnyc
+anomaly_ratio: 0.05
+val_ratio: 0.1
+test_ratio: 0.1
+feature_dim: 10000
+loader: subgraph
+batch_size: 2048
+num_neighbors: [10, 5]

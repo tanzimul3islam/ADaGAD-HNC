@@ -1,0 +1,9 @@
+name: yelphotel
+dataset: yelphotel
+anomaly_ratio: 0.05
+val_ratio: 0.1
+test_ratio: 0.1
+feature_dim: 8000
+loader: subgraph
+batch_size: 1024
+num_neighbors: [10, 5]

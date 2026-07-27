@@ -123,7 +123,15 @@ def train(config: dict[str, Any]) -> float:
     data = apply_split(data, train_idx, val_idx, test_idx)
     dataset.data = data
 
-    loader_cfg = config.get("loader", {"loader": "full", "batch_size": 1})
+    loader_cfg = config.get("loader") or config.get("data", {}).get("loader", "full")
+    if isinstance(loader_cfg, str):
+        loader_cfg = {"loader": loader_cfg}
+    if isinstance(loader_cfg, dict):
+        loader_cfg.setdefault("loader", "full")
+        loader_cfg.setdefault("batch_size", config.get("data", {}).get("batch_size", 1))
+        nc = config.get("data", {}).get("num_neighbors")
+        if nc is not None:
+            loader_cfg["num_neighbors"] = nc
     loader = get_runner(dataset, loader_cfg)
 
     device = get_device(config.get("device", "auto"))
