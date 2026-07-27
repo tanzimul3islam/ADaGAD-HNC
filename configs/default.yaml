@@ -1,5 +1,5 @@
 defaults:
-  - data: cora
+  - data: amazon
   - model: adagad_hnc
   - train: curriculum
 

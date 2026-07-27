@@ -31,7 +31,7 @@ test:
 	pytest -q
 
 smoke:
-	python -m src.main train model=adagad_hnc data=citeseer train=standard max_epochs=1
+	python -m src.main train model=adagad_hnc data=amazon train=standard max_epochs=1
 
 train:
 	python -m src.main train

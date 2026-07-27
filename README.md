@@ -45,13 +45,13 @@ poetry shell
 
 ## Dataset Preparation
 
-Supported datasets: Cora, CiteSeer, PubMed, ACM, BlogCatalog, Flickr.
+Supported datasets: Amazon, YelpHotel, YelpNYC, YelpRes.
 
-Some datasets auto-download via PyTorch Geometric; for others place raw files under `data/raw/`. Run:
+Place raw `.mat` files under `dataset/` or `raw_dataset/`. Run:
 
 ```bash
-python scripts/prepare_data.py --dataset citeseer
-python scripts/prepare_data.py --dataset flickr
+python scripts/prepare_data.py --dataset amazon
+python scripts/prepare_data.py --dataset yelphotel
 ```
 
 The script downloads, validates shapes/NaNs/Inf/feature dims, generates reproducible splits, and exports `dataset_summary.json`.
@@ -64,7 +64,7 @@ The script downloads, validates shapes/NaNs/Inf/feature dims, generates reproduc
 
 ```bash
 # Single training run
-python -m src.main train model=adagad_hnc data=citeseer train=curriculum
+python -m src.main train model=adagad_hnc data=amazon train=curriculum
 
 # Multi-seed evaluation
 python -m src.experiments.run_multiseed --config configs/default.yaml --seeds 1 2 3 4 5
@@ -87,11 +87,11 @@ python -m src.experiments.ablations --config configs/default.yaml --suite fusion
 ## CLI Examples
 
 ```bash
-# Curriculum training on CiteSeer
-python -m src.main train model=adagad_hnc data=citeseer train=curriculum
+# Curriculum training on Amazon
+python -m src.main train model=adagad_hnc data=amazon train=curriculum
 
 # Baseline config
-python -m src.main train model=baselines data=citeseer data.dataset=citeseer
+python -m src.main train model=baselines data=amazon
 
 # Ablation suite
 python -m src.experiments.ablations --suite fusion_curriculum
@@ -127,7 +127,7 @@ REPO_DIR = '/kaggle/working/AdaGAD-HNC'
 ```python
 import os
 os.chdir('/kaggle/working/AdaGAD-HNC')
-!python scripts/prepare_data.py --dataset citeseer
+!python scripts/prepare_data.py --dataset amazon
 ```
 
 ### Training
@@ -138,10 +138,10 @@ import os
 os.chdir('/kaggle/working/AdaGAD-HNC')
 !python -m src.main train \
   model=adagad_hnc \
-  data=citeseer \
+  data=amazon \
   train=curriculum \
   max_epochs=20 \
-  checkpoint_dir=outputs/curriculum_citeseer
+  checkpoint_dir=outputs/curriculum_amazon
 ```
 
 **Resume after session restart**
@@ -150,11 +150,11 @@ import os
 os.chdir('/kaggle/working/AdaGAD-HNC')
 !python -m src.main train \
   model=adagad_hnc \
-  data=citeseer \
+  data=amazon \
   train=curriculum \
   max_epochs=20 \
   --auto-resume \
-  checkpoint_dir=outputs/curriculum_citeseer
+  checkpoint_dir=outputs/curriculum_amazon
 ```
 
 **Check saved checkpoints**
@@ -165,7 +165,7 @@ os.chdir('/kaggle/working/AdaGAD-HNC')
 **Download results**
 ```python
 from google.colab import files
-files.download('outputs/curriculum_citeseer/default/metrics.json')
+files.download('outputs/curriculum_amazon/default/metrics.json')
 ```
 
 ### Notes
@@ -198,10 +198,10 @@ Training supports resuming from the last saved checkpoint. This is useful if the
 ### 1. Start training normally
 
 ```bash
-python -m src.main train model=adagad_hnc data=citeseer train=curriculum max_epochs=100
+python -m src.main train model=adagad_hnc data=amazon train=curriculum max_epochs=100
 ```
 
-This saves checkpoints to `outputs/curriculum_citeseer/default/`:
+This saves checkpoints to `outputs/curriculum_amazon/default/`:
 - `last.pt` — always updated after each checkpoint
 - `best.pt` — best validation AUC so far
 - `epoch_XXXX.pt` — periodic epoch snapshots
@@ -213,10 +213,10 @@ If training stops, just rerun with `resume_from`:
 ```bash
 python -m src.main train \
   model=adagad_hnc \
-  data=citeseer \
+  data=amazon \
   train=curriculum \
   max_epochs=100 \
-  resume_from=outputs/curriculum_citeseer/default/last.pt
+  resume_from=outputs/curriculum_amazon/default/last.pt
 ```
 
 It loads the saved epoch and continues from the next one.
@@ -224,7 +224,7 @@ It loads the saved epoch and continues from the next one.
 ### 3. Check saved checkpoints
 
 ```bash
-ls outputs/curriculum_citeseer/default/
+ls outputs/curriculum_amazon/default/
 ```
 
 ## Reproducibility Checklist
@@ -266,7 +266,7 @@ make format    # black + isort
 make lint      # ruff
 make typecheck # mypy
 make test      # pytest -q
-make smoke     # 1-epoch smoke train on CiteSeer
+make smoke     # 1-epoch smoke train on Amazon
 ```
 
 ---

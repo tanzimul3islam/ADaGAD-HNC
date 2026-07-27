@@ -69,15 +69,9 @@ plt.close()
 print("Saved dataset_statistics.png")
 
 # ============ 2. Main Results Comparison ============
-methods = ["CoLA", "ANEMONE", "NLGAD", "AD-GCL", "SL-GAD",
-           "Fixed-\nFusion", "Contrast-\niveOnly", "Recon-\nOnly", "AdaGAD-\nHNC"]
+methods = ["Fixed-\nFusion", "Contrast-\niveOnly", "Recon-\nOnly", "AdaGAD-\nHNC"]
 
 results = np.array([
-    [72.34, 85.12, 79.45, 84.23],
-    [74.56, 86.78, 81.23, 85.67],
-    [76.89, 88.45, 83.12, 87.34],
-    [78.34, 89.23, 84.56, 88.12],
-    [73.45, 86.12, 80.89, 85.45],
     [80.12, 91.34, 86.78, 90.23],
     [78.89, 90.45, 85.12, 89.34],
     [75.34, 87.23, 82.89, 86.12],
@@ -86,24 +80,21 @@ results = np.array([
 
 n_methods = len(methods)
 n_datasets = len(datasets)
-bar_width = 0.1
+bar_width = 0.18
 x = np.arange(n_datasets)
 
 fig, ax = plt.subplots(figsize=(10, 5.5))
 for i in range(n_methods):
     offset = (i - n_methods / 2) * bar_width + bar_width / 2
-    color = colors[i % 4] if i < 4 else "#6C6C6C" if i < 8 else "#C44E52"
-    if i == 8:
-        color = "#C44E52"
-        edge = "black"
-        lw = 1.0
-    else:
-        edge = color
-        lw = 0.5
+    is_adagad = (i == n_methods - 1)
+    color = "#C44E52" if is_adagad else "#6C6C6C"
+    edge = "black" if is_adagad else color
+    lw = 1.0 if is_adagad else 0.5
+    alpha = 1.0 if is_adagad else 0.85
     bars = ax.bar(x + offset, results[i], bar_width * 0.9,
                   label=methods[i].replace("\n", " "),
-                  color=color, edgecolor=edge, linewidth=lw, alpha=0.85 if i < 8 else 1.0)
-    if i == 8:
+                  color=color, edgecolor=edge, linewidth=lw, alpha=alpha)
+    if is_adagad:
         for bar, v in zip(bars, results[i]):
             ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.5,
                     f"{v:.2f}", ha="center", va="bottom", fontsize=7, fontweight="bold")
