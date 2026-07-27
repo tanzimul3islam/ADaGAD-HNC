@@ -184,6 +184,10 @@ PREPARERS = {
     "blogcatalog": lambda **kw: prepare_mat_dataset("BlogCatalog", **kw),
     "flickr": lambda **kw: prepare_mat_dataset("Flickr", **kw),
     "books": prepare_books,
+    "amazon": lambda **kw: prepare_mat_dataset("Amazon", **kw),
+    "yelphotel": lambda **kw: prepare_mat_dataset("YelpHotel", **kw),
+    "yelpnyc": lambda **kw: prepare_mat_dataset("YelpNYC", **kw),
+    "yelpres": lambda **kw: prepare_mat_dataset("YelpRes", **kw),
 }
 
 
