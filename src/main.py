@@ -84,10 +84,26 @@ def _merge_overrides(config: dict[str, Any], overrides: list[str]) -> dict[str, 
                 cur[leaf] = group_cfg
                 continue
         cur[leaf] = cast
+    _normalize_shortcuts(config)
     return config
 
 
+def _normalize_shortcuts(config: dict[str, Any]) -> None:
+    data_cfg = config.get("data")
+    if isinstance(data_cfg, str):
+        config["data"] = {"dataset": data_cfg, "val_ratio": 0.1, "test_ratio": 0.1}
+
+    model_cfg = config.get("model")
+    if isinstance(model_cfg, str):
+        config["model"] = {"type": model_cfg}
+
+    train_cfg = config.get("train")
+    if isinstance(train_cfg, str):
+        config["train"] = {"name": train_cfg}
+
+
 def train(config: dict[str, Any]) -> float:
+    _normalize_shortcuts(config)
     seed = config.get("seed", 42)
     setup_seed(seed)
 
@@ -186,6 +202,7 @@ def train(config: dict[str, Any]) -> float:
 def evaluate(config: dict[str, Any], ckpt_path: str) -> dict[str, Any]:
     from src.train.checkpoint import CheckpointManager
 
+    _normalize_shortcuts(config)
     device = get_device(config.get("device", "auto"))
     root = config.get("data_dir", "data")
     dataset_name = config["data"]["dataset"]
