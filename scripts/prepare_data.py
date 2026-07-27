@@ -40,6 +40,20 @@ def prepare_mat_dataset(
     return summary
 
 
+def prepare_books(data_dir: str = "data", anomaly_ratio: float = 0.05, seed: int = 42, **kwargs) -> Dict:
+    mat_path = _find_mat_file("books")
+    if mat_path is None:
+        raise FileNotFoundError("books.mat not found in dataset/ or raw_dataset/.")
+    data = _load_books_mat(mat_path)
+    out_dir = Path(data_dir) / "books" / "processed"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    save_path = out_dir / "data.pt"
+    torch.save(data, save_path)
+    summary = _summary(data, "books")
+    LOGGER.info(f"Saved books to {save_path}")
+    return summary
+
+
 def _find_mat_file(name: str) -> Optional[Path]:
     candidates = [
         DATASET_DIR / f"{name}.mat",
@@ -103,6 +117,53 @@ def _load_mat(path: Path, name: str, anomaly_key: str = "Label") -> GeoData:
     return data
 
 
+def _load_books_mat(path: Path) -> GeoData:
+    mat = sio.loadmat(path, squeeze_me=True, struct_as_record=False)
+
+    def _get(key):
+        if key not in mat:
+            raise KeyError(f"'{key}' not found in {path}. Available keys: {list(mat.keys())}")
+        return mat[key]
+
+    network = _get("A")
+    attributes = _get("X")
+    labels = _get("gnd")
+
+    if hasattr(network, "toarray"):
+        adj = network.toarray()
+    else:
+        adj = np.array(network)
+
+    if hasattr(attributes, "toarray"):
+        x = attributes.toarray()
+    else:
+        x = np.array(attributes)
+
+    adj = np.array(adj, dtype=np.float32)
+    x = np.array(x, dtype=np.float32)
+
+    if adj.shape[0] != adj.shape[1]:
+        raise ValueError(f"Adjacency matrix must be square, got {adj.shape}")
+    if x.shape[0] != adj.shape[0]:
+        raise ValueError(f"Feature matrix rows ({x.shape[0]}) != nodes ({adj.shape[0]})")
+
+    x = torch.tensor(x, dtype=torch.float32)
+    y = np.array(labels).flatten()
+
+    if y.size != x.shape[0]:
+        raise ValueError(f"Label length ({y.size}) != number of nodes ({x.shape[0]})")
+
+    y = (y > 0).astype(np.int64)
+
+    edge_index, _ = dense_to_sparse(torch.tensor(adj, dtype=torch.float32))
+    edge_index = to_undirected(edge_index, num_nodes=x.shape[0])
+
+    data = GeoData(x=x, edge_index=edge_index, y=torch.tensor(y, dtype=torch.long))
+    data.num_nodes = x.shape[0]
+    data.num_features = x.shape[1]
+    return data
+
+
 def _summary(data: GeoData, name: str) -> Dict:
     y = data.y.cpu().numpy()
     return {
@@ -122,6 +183,7 @@ PREPARERS = {
     "acm": lambda **kw: prepare_mat_dataset("ACM", **kw),
     "blogcatalog": lambda **kw: prepare_mat_dataset("BlogCatalog", **kw),
     "flickr": lambda **kw: prepare_mat_dataset("Flickr", **kw),
+    "books": prepare_books,
 }
 
 
