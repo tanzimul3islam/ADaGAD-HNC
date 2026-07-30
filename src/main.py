@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import torch
 import yaml
 
@@ -52,6 +53,12 @@ def load_config(path: str) -> dict[str, Any]:
 def _cast_value(value: str) -> Any:
     if value.lower() in ("true", "false"):
         return value.lower() == "true"
+    if value.startswith("[") and value.endswith("]"):
+        import json
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError:
+            pass
     try:
         return int(value)
     except ValueError:
@@ -179,7 +186,10 @@ def train(config: dict[str, Any]) -> float:
         ):
             eval_out = engine.evaluate(loader)
             evaluator = Evaluator()
-            metrics = evaluator.evaluate(eval_out["labels"], eval_out["scores"])
+            val_mask = data.val_mask.cpu().numpy()
+            metrics = evaluator.evaluate(
+                eval_out["labels"][val_mask], eval_out["scores"][val_mask]
+            )
             metrics.update(train_metrics)
             metrics_history.append({"epoch": epoch, **metrics})
             stop = early_stop.on_epoch_end(epoch, metrics)
@@ -211,12 +221,25 @@ def evaluate(config: dict[str, Any], ckpt_path: str) -> dict[str, Any]:
     from src.train.checkpoint import CheckpointManager
 
     _normalize_shortcuts(config)
+    seed = config.get("seed", 42)
+    setup_seed(seed)
     device = get_device(config.get("device", "auto"))
     root = config.get("data_dir", "data")
     dataset_name = config["data"]["dataset"]
     dataset_root = Path(root) / dataset_name
     dataset = AnomalyDataset(root=dataset_root, name=dataset_name)
     data = dataset.data
+
+    y = data.y.cpu().numpy()
+    _, _, test_idx = stratified_train_val_test_split(
+        y,
+        val_ratio=config["data"].get("val_ratio", 0.1),
+        test_ratio=config["data"].get("test_ratio", 0.1),
+        seed=seed,
+    )
+    data = apply_split(data, np.array([], dtype=np.int64), np.array([], dtype=np.int64), test_idx)
+    dataset.data = data
+
     loader = get_runner(dataset, config.get("loader", {"loader": "full", "batch_size": 1}))
 
     model_cfg = config["model"]
@@ -230,7 +253,8 @@ def evaluate(config: dict[str, Any], ckpt_path: str) -> dict[str, Any]:
     engine = Engine(model, None, None, device, config.get("train", {}))
     out = engine.evaluate(loader)
     evaluator = Evaluator()
-    metrics = evaluator.evaluate(out["labels"], out["scores"])
+    test_mask = data.test_mask.cpu().numpy()
+    metrics = evaluator.evaluate(out["labels"][test_mask], out["scores"][test_mask])
     save_json(metrics, Path("outputs") / "eval_metrics.json")
     LOGGER.info(f"Eval metrics: {metrics}")
     return metrics

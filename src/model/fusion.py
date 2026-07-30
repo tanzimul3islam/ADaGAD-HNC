@@ -6,21 +6,37 @@ from torch import nn
 
 
 class AdaptiveFusion(nn.Module):
-    def __init__(self, hidden_dim: int, num_layers: int = 2, entropy_reg_weight: float = 0.1):
+    def __init__(
+        self,
+        hidden_dim: int,
+        num_layers: int = 2,
+        entropy_reg_weight: float = 0.1,
+        mode: str = "adaptive",
+        fixed_weights: list[float] | None = None,
+    ):
         super().__init__()
-        layers: list[Any] = []
-        layers.append(nn.Linear(4, hidden_dim))
-        layers.append(nn.ReLU())
-        for _i in range(num_layers - 2):
-            layers.append(nn.Linear(hidden_dim, hidden_dim))
-            layers.append(nn.ReLU())
-        layers.append(nn.Linear(hidden_dim, 3))
-        self.fusion_mlp = nn.Sequential(*layers)
+        self.mode = mode
         self.entropy_reg_weight = entropy_reg_weight
+        if mode == "fixed" and fixed_weights is not None:
+            w = torch.tensor(fixed_weights, dtype=torch.float)
+            self.register_buffer("fixed_w", w / w.sum())
+        else:
+            layers: list[Any] = []
+            layers.append(nn.Linear(4, hidden_dim))
+            layers.append(nn.ReLU())
+            for _i in range(num_layers - 2):
+                layers.append(nn.Linear(hidden_dim, hidden_dim))
+                layers.append(nn.ReLU())
+            layers.append(nn.Linear(hidden_dim, 3))
+            self.fusion_mlp = nn.Sequential(*layers)
 
     def forward(
         self, context_score, patch_score, recon_score, uncertainty: torch.Tensor | None = None
     ):
+        if self.mode == "fixed":
+            w = self.fixed_w.unsqueeze(0).expand(len(context_score), -1)
+            score = (w * torch.stack([context_score, patch_score, recon_score], dim=-1)).sum(dim=-1)
+            return score, w, torch.zeros_like(score.mean())
         if uncertainty is None:
             uncertainty = torch.zeros_like(context_score)
         h = torch.stack([context_score, patch_score, recon_score, uncertainty], dim=-1)

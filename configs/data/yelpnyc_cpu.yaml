@@ -1,0 +1,9 @@
+name: yelpnyc_cpu
+dataset: yelpnyc
+anomaly_ratio: 0.05
+val_ratio: 0.1
+test_ratio: 0.1
+feature_dim: 10000
+num_classes: 5
+loader: full
+batch_size: 1

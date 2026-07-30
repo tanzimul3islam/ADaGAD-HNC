@@ -1,11 +1,11 @@
 defaults:
-  - data: amazon
-  - model: adagad_hnc
-  - train: curriculum
+  - data: amazon_cpu
+  - model: adagad_hnc_cpu
+  - train: cpu
 
 project: AdaGAD-HNC
 seed: 42
-device: auto
+device: cpu
 amp: false
 log_dir: outputs
 experiment_name: default

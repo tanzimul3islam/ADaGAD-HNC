@@ -61,8 +61,13 @@ class AdaGADHNC(nn.Module):
             hidden_dim=fusion_cfg.get("hidden_dim", self.hidden_dim),
             num_layers=fusion_cfg.get("num_layers", 2),
             entropy_reg_weight=fusion_cfg.get("entropy_reg_weight", 0.1),
+            mode=fusion_cfg.get("mode", "adaptive"),
+            fixed_weights=fusion_cfg.get("fixed_weights", None),
         )
 
+        self.remove_context = config.get("remove_context", False)
+        self.remove_patch = config.get("remove_patch", False)
+        self.remove_recon = config.get("remove_recon", False)
         self.loss_fn = config.get("loss", "bce")
         self.temperature = config.get("temperature", 0.2)
 
@@ -83,6 +88,13 @@ class AdaGADHNC(nn.Module):
             self.discriminator(global_h[batch] if batch is not None else global_h.expand_as(h))
         )
         recon_score = recon_loss
+
+        if self.remove_context:
+            context_score = torch.zeros_like(context_score)
+        if self.remove_patch:
+            patch_score = torch.zeros_like(patch_score)
+        if self.remove_recon:
+            recon_score = torch.zeros_like(recon_score)
 
         final_score, weights, entropy = self.fusion(context_score, patch_score, recon_score)
 

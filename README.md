@@ -10,11 +10,12 @@
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
+pip install torch torchvision
+pip install torch-geometric
 pip install -r requirements.txt
 ```
 
-
-```
+This will install CPU-only PyTorch. For GPU support, replace the PyTorch install with the appropriate CUDA version from https://pytorch.org.
 
 ---
 
@@ -33,31 +34,13 @@ python scripts/prepare_data.py --dataset yelpres
 
 ---
 
-## Training
+train:
 
-### Single training run
+python -m src.main train model=adagad_hnc_medium data=yelphotel_cpu train=tuned experiment_name=yelphotel > train_yelphotel.log
+python -m src.main train model=adagad_hnc_medium data=yelpnyc_cpu train=tuned experiment_name=yelpnyc > train_yelpnyc.log
+python -m src.main train model=adagad_hnc_medium data=yelpres_cpu train=tuned experiment_name=yelpres > train_yelpres.log
 
-```bash
-python -m src.main train model=adagad_hnc data=amazon train=curriculum
-python -m src.main train model=adagad_hnc data=yelphotel train=curriculum
-python -m src.main train model=adagad_hnc data=yelpnyc train=curriculum
-python -m src.main train model=adagad_hnc data=yelpres train=curriculum
-```
-
-### Multi-seed evaluation
-
-```bash
-python -m src.experiments.run_multiseed --config configs/default.yaml --seeds 1 2 3 4 5
-```
-
-### Evaluation
-
-```bash
-python -m src.main eval --ckpt outputs/<run>/checkpoints/best.pt
-```
-
-### Ablations
-
-```bash
-python -m src.experiments.ablations --config configs/default.yaml --suite fusion_curriculum
-```
+test:
+python -m src.main eval --ckpt outputs/yelphotel/best.pt model=adagad_hnc_medium data=yelphotel_cpu
+python -m src.main eval --ckpt outputs/yelpnyc/best.pt model=adagad_hnc_medium data=yelpnyc_cpu
+python -m src.main eval --ckpt outputs/yelpres/best.pt model=adagad_hnc_medium data=yelpres_cpu```
